@@ -17,6 +17,7 @@ app.config['SECRET_KEY'] = "your-secret-key"
 app.config['UPLOAD_FOLDER'] = './uploaded_videos'
 
 # Initialize OpenAI API
+# Add the key to your env with the command: export OPENAI_API_KEY=your-key or set OPENAI_API_KEY=your-key
 OpenAI.api_key = app.config['OPENAI_API_KEY']
 
 class VideoUploadForm(FlaskForm):
