@@ -1,3 +1,5 @@
 *.json
 google_application_credentials.json
 uploaded_videos/*
+*.env
+*.wav

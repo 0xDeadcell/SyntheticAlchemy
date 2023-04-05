@@ -1,9 +1,13 @@
 {% extends "base.html" %}
 
 {% block content %}
+
 <h1>Upload Video</h1>
 <form method="POST" enctype="multipart/form-data">
   {{ form.csrf_token }}
+  <!-- Available Models Select Field -->
+
+  
   {{ form.video_file.label }}: {{ form.video_file }}
   {{ form.submit }}
 </form>

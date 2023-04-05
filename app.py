@@ -8,7 +8,7 @@ from google.cloud import vision
 from flask import Flask, render_template, request, redirect, url_for, flash
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileField, FileAllowed, FileRequired
-from wtforms import SubmitField, StringField
+from wtforms import SubmitField, StringField, SelectField
 import openai
 from werkzeug.utils import secure_filename
 
@@ -19,10 +19,13 @@ app.config['UPLOAD_FOLDER'] = './uploaded_videos'
 # Initialize OpenAI API
 # Add the key to your env with the command: export OPENAI_API_KEY=your-key or set OPENAI_API_KEY=your-key
 openai.api_key = os.getenv('OPENAI_API_KEY')
+print(openai.api_key)
+
 
 class VideoUploadForm(FlaskForm):
     video_file = FileField('Upload Video', validators=[FileRequired(), FileAllowed(['mp4'], 'Videos only!')])
     submit = SubmitField('Upload')
+    
 
 class QueryForm(FlaskForm):
     question = StringField('Ask a question:', validators=[])
@@ -69,8 +72,8 @@ def process_video(video_path):
     audio = speech.RecognitionAudio(content=content)
     config = speech.RecognitionConfig(
         encoding=speech.RecognitionConfig.AudioEncoding.LINEAR16,
-        sample_rate_hertz=16000,
         language_code="en-US",
+        audio_channel_count = 2,
     )
 
     response = speech_client.recognize(config=config, audio=audio)
@@ -81,8 +84,22 @@ def process_video(video_path):
     return "\n".join(text_data), "\n".join(audio_data)
 
 def ask_gpt(question, context):
-    response = openai.Completion.create(
-        engine="text-davinci-003",
+    print("Asking GPT-4...")
+    print(f"Question: {question}")
+    print(f"Context: {context}")
+    print(f"Max tokens: 3000")
+    print(f"Max Context Size: 4096")
+
+    if len(question)/2 > 4096:
+        print("Question is too long. Please ask a shorter question... Only using the first 512 characters")
+    question = question[:512]
+
+    if len(context)/2 > 4096:
+        print("Context is too long. Please provide a shorter context... Only using the first 1700 characters")
+        context = context[:1700]
+
+    response = openai.ChatCompletion.create(
+        engine="gpt-3.5-turbo",
         prompt=f"{question}\n\n{context}",
         max_tokens=3000,
         n=1,
@@ -94,6 +111,8 @@ def ask_gpt(question, context):
 @app.route('/', methods=['GET', 'POST'])
 def upload_video():
     form = VideoUploadForm()
+
+
     if form.validate_on_submit():
         video_file = form.video_file.data
         video_filename = secure_filename(video_file.filename)
