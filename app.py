@@ -19,8 +19,7 @@ app.config['UPLOAD_FOLDER'] = './uploaded_videos'
 # Initialize OpenAI API
 # Add the key to your env with the command: export OPENAI_API_KEY=your-key or set OPENAI_API_KEY=your-key
 openai.api_key = os.getenv('OPENAI_API_KEY')
-print(openai.api_key)
-
+print("Available OpenAI Engines: \n", openai.Engine.list())
 
 class VideoUploadForm(FlaskForm):
     video_file = FileField('Upload Video', validators=[FileRequired(), FileAllowed(['mp4'], 'Videos only!')])
@@ -99,7 +98,7 @@ def ask_gpt(question, context):
         context = context[:1700]
 
     response = openai.ChatCompletion.create(
-        engine="gpt-3.5-turbo",
+        model="gpt-4-0314",
         prompt=f"{question}\n\n{context}",
         max_tokens=3000,
         n=1,
