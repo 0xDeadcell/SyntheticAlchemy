@@ -27,6 +27,10 @@ SyntheticAlchemy is a web application that allows users to upload a video and as
 - Sign up for an API key from OpenAI and replace `"your-openai-api-key"` in `app.py` with your actual API key.
 - Set up a Google Cloud Platform (GCP) account and enable the Speech-to-Text API and Vision API. Download the JSON key for your service account and set the `GOOGLE_APPLICATION_CREDENTIALS` environment variable to the path of the JSON key file.
 
+4. Setup Google Cloud to provide credentials:
+- https://cloud.google.com/sdk/docs/install
+- https://cloud.google.com/docs/authentication/provide-credentials-adc#how-to
+
 ## Usage
 
 1. Start the Flask server:
