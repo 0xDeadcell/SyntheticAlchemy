@@ -1,0 +1,7 @@
+Flask
+Flask-WTF
+google-cloud-speech
+google-cloud-vision
+opencv-python-headless
+openai
+pydub
