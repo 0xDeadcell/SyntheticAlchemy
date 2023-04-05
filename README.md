@@ -14,7 +14,7 @@ SyntheticAlchemy is a web application that allows users to upload a video and as
 
 1. Clone the repository:
 
-`git clone https://github.com/yourusername/SyntheticAlchemy.git`
+`git clone https://github.com/0xdeadcell/SyntheticAlchemy.git`
 
 
 2. Install the required packages:
