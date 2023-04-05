@@ -1,6 +1,6 @@
 # SyntheticAlchemy - Video Q&A with AI
 
-<img src="./static/images/logo.png" alt="Logo" width="200" />
+<img src="./static/images/logo.png" alt="Logo" align="center" width="200" />
 
 SyntheticAlchemy is a web application that allows users to upload a video and ask questions about its content. It utilizes OpenCV, pydub, and Google Cloud APIs for video processing, and OpenAI's GPT-3 for generating answers to the user's questions.
 
