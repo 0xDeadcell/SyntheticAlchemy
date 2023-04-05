@@ -9,7 +9,7 @@ from flask import Flask, render_template, request, redirect, url_for, flash
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileField, FileAllowed, FileRequired
 from wtforms import SubmitField, StringField
-from openai import OpenAI
+import openai
 from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
@@ -18,7 +18,7 @@ app.config['UPLOAD_FOLDER'] = './uploaded_videos'
 
 # Initialize OpenAI API
 # Add the key to your env with the command: export OPENAI_API_KEY=your-key or set OPENAI_API_KEY=your-key
-OpenAI.api_key = app.config['OPENAI_API_KEY']
+openai.api_key = os.getenv('OPENAI_API_KEY')
 
 class VideoUploadForm(FlaskForm):
     video_file = FileField('Upload Video', validators=[FileRequired(), FileAllowed(['mp4'], 'Videos only!')])
@@ -81,10 +81,10 @@ def process_video(video_path):
     return "\n".join(text_data), "\n".join(audio_data)
 
 def ask_gpt(question, context):
-    response = OpenAI.Completion.create(
-        engine="text-davinci-002",
+    response = openai.Completion.create(
+        engine="text-davinci-003",
         prompt=f"{question}\n\n{context}",
-        max_tokens=100,
+        max_tokens=3000,
         n=1,
         stop=None,
         temperature=0.7,

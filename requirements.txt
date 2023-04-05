@@ -3,5 +3,5 @@ Flask-WTF
 google-cloud-speech
 google-cloud-vision
 opencv-python-headless
-openai
+openai==0.27.2
 pydub
