@@ -3,11 +3,17 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='images/logo.ico') }}">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    <title>Video Q&A</title>
+    <title>Synthetic Alchemy</title>
   </head>
   <body>
+        <!-- make the style transparent -->
+        <div style="display: flex; align-items: center;">
+            <a href="{{ url_for('upload_video') }}" style="display: inline-block; float: left; margin-right: 20px;"><img src="{{ url_for('static', filename='images/logo.png') }}" alt="Logo" class="logo" style="width: 100px; height: 100px;"></a>
+            <h1 style="display: inline-block; font-size: 50px; line-height: 100px;">Synthetic Alchemy</h1>
+        </div>
     <div class="container">
       {% block content %}
       {% endblock %}
@@ -16,5 +22,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
     <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+    {% block scripts %}
+    {% endblock %}
   </body>
 </html>

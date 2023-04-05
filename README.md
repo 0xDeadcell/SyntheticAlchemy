@@ -2,7 +2,9 @@
 
 <img src="./static/images/logo.png" alt="Logo" align="center" width="200" />
 
-SyntheticAlchemy is a web application that allows users to upload a video and ask questions about its content. It utilizes OpenCV, pydub, and Google Cloud APIs for video processing, and OpenAI's GPT-3 for generating answers to the user's questions.
+SyntheticAlchemy is a web application that allows users to upload a video and ask questions about its content. It utilizes OpenCV, pydub, and Google Cloud APIs for video processing, and OpenAI's GPT-3 for generating answers to the user's questions. The webapp has a `process_video` function that extracts frames and audio from the uploaded video performing image recognition and text detection using the Google Cloud Vision API. It transcribes the audio using the Google Cloud Speech-to-Text API. The function processes one frame at a time and compares the text data of each frame to avoid duplicates, it stores the unique text data and audio transcripts in separate lists to avoid overuse of tokens.
+
+![Example Usage](example_usage.png)
 
 ## Features
 

@@ -1,12 +1,27 @@
 {% extends "base.html" %}
 
 {% block content %}
+<h1>Uploaded Video</h1>
+<video id="uploaded-video" width="100%" controls>
+  <source src="{{ video_url }}" type="video/mp4">
+  Your browser does not support the video tag.
+</video>
+
 <h1>Ask a Question</h1>
 <form method="POST">
   {{ form.csrf_token }}
-  {{ form.question.label }}: {{ form.question }}
+  {{ form.question }}
   {{ form.submit }}
 </form>
 <h3>Answer:</h3>
-<p>{{ answer }}</p>
+<div class="answer">{{ answer|markdown }}</div>
+
+<br/>
+<br/>
+<h4 style="text-align: center;">Debugging Info</h4>
+<h3>Text data:</h3>
+<pre>{{ text_data }}</pre>
+<h3>Audio data:</h3>
+<pre>{{ audio_data }}</pre>
+
 {% endblock %}
