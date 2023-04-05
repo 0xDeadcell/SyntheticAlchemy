@@ -1,4 +1,6 @@
 # SyntheticAlchemy - Video Q&A with AI
+Have an AI watch and listen to a video so you can ask questions to it!
+
 
 <img src="./static/images/logo.png" alt="Logo" align="center" width="200" />
 
