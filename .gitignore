@@ -7,3 +7,4 @@ uploaded_videos/*
 *.env
 *.wav
 *.flac
+*.key

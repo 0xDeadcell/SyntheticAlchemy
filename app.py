@@ -19,12 +19,14 @@ from wtforms import SubmitField, StringField, SelectField
 import openai
 import io
 import whisper
-from werkzeug.utils import secure_filename
 import time
+from werkzeug.utils import secure_filename
 import validators
 from difflib import SequenceMatcher
-import soundfile as sf
-from similarity import filter_paragraphs, calculate_similarity, find_top_k_similar
+import pytesseract
+pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
+from concurrent.futures import ThreadPoolExecutor
+from similarity import find_top_k_similar, filter_paragraphs, calculate_similarity
 
 # Load OpenAI Whisper model
 model = whisper.load_model("base")
@@ -88,9 +90,6 @@ def process_video(video_path, similar=0.8):
     text_data = []
     audio_data = []
 
-    vision_client = vision.ImageAnnotatorClient()
-    storage_client = storage.Client()
-
     if not (validators.url(video_path) or os.path.exists(video_path)):
         raise ValueError("Invalid URL or local file path provided")
 
@@ -106,103 +105,71 @@ def process_video(video_path, similar=0.8):
     frame_rate = int(video.get(cv2.CAP_PROP_FPS))
     frame_count = 0
 
-    # Create a bucket with a random name
-    random_string = ''.join(random.choices(string.ascii_lowercase, k=5))
-    bucket_name = f"syntheticalchemy_{random_string}"
-    storage_client.create_bucket(bucket_name)
+    # Concurrently process audio and text data
+    def process_text(frame_path):
+        # Use pytesseract for image extraction
+        text = pytesseract.image_to_string(frame_path)
+        return text
 
+    def process_audio(audio_path):
+        # Transcribe the audio using OpenAI Whisper
+        try:
+            transcript = model.transcribe(audio_path)
+            return transcript['text']
+        except Exception as e:
+            print("Error extracting audio: " + str(e))
 
-    while True:
-        ret, frame = video.read()
+    with ThreadPoolExecutor() as executor:
+        while True:
+            ret, frame = video.read()
 
-        if not ret:
-            break
+            if not ret:
+                break
 
-        # Extract frames every 3 frames
-        if frame_count % 3 == 0:
-            # Save the frame to a temporary file
-            frame_path = f"frame_{frame_count}.jpg"
-            cv2.imwrite(frame_path, frame)
+            # Extract frames every 30 frames
+            if frame_count % 30 == 0:
+                # Save the frame to a temporary file
+                frame_path = f"frame_{frame_count}.jpg"
+                cv2.imwrite(frame_path, frame)
 
-            # Annotate the frame using Google Cloud Vision API
-            with io.open(frame_path, 'rb') as image_file:
-                content = image_file.read()
-            image = vision.Image(content=content)
-            response = vision_client.text_detection(image=image)
-            texts = response.text_annotations
+                # Process the frame using pytesseract
+                texts = process_text(frame_path)
 
-            if texts:
-                text_data.append({
-                    'frame': frame_count,
-                    'text': texts[0].description
-                })
+                if texts:
+                    text_data.append(texts)
 
-            # Delete the temporary file
-            os.remove(frame_path)
+                # Delete the temporary file
+                os.remove(frame_path)
 
-        # Extract audio every 5 seconds
-        if frame_count % (frame_rate * 5) == 0:
-            start_time = frame_count / frame_rate
-            end_time = start_time + 5
+            # Extract audio every 5 seconds
+            if frame_count % (frame_rate * 5) == 0:
+                start_time = frame_count / frame_rate
+                end_time = start_time + 5
 
-            # Save the audio segment to a temporary file
-            audio_path = f"audio_{frame_count}.flac"
-            AudioSegment.from_file(video_path).export(audio_path, format="flac")
+                # Save the audio segment to a temporary file
+                audio_path = f"audio_{frame_count}.flac"
+                AudioSegment.from_file(video_path).export(audio_path, format="flac")
 
-            # Upload the audio to Google Cloud Storage
-            blob = storage_client.bucket(bucket_name).blob(audio_path)
-            blob.upload_from_filename(audio_path, content_type="audio/flac")
-            gcs_uri = f"gs://{bucket_name}/{audio_path}"
+                # Process the audio using OpenAI Whisper
+                audio_transcript = executor.submit(process_audio, audio_path).result()
 
-            # Transcribe the audio using Google Cloud Speech-to-Text API
-            client = speech.SpeechClient()
+                if audio_transcript:
+                    audio_data.append(audio_transcript)
 
-            # Read the audio file and get its sample rate
-            with sf.SoundFile(audio_path) as audio_file:
-                sample_rate = audio_file.samplerate
-                channel_count = audio_file.channels
+                # Delete the temporary file
+                os.remove(audio_path)
 
-            config = speech.RecognitionConfig(
-                encoding=speech.RecognitionConfig.AudioEncoding.FLAC,
-                sample_rate_hertz=sample_rate,
-                language_code="en-US",
-                enable_automatic_punctuation=True,
-                audio_channel_count=channel_count,  # Set the audio_channel_count
-                model="video",
-            )
-            audio = speech.RecognitionAudio(uri=gcs_uri)
-
-            operation = client.long_running_recognize(config=config, audio=audio)
-            response = operation.result(timeout=500)
-            transcript = ""
-            for result in response.results:
-                transcript += result.alternatives[0].transcript
-
-            audio_data.append({
-                'frame': frame_count,
-                'transcript': transcript
-            })
-
-            # Delete the temporary file and the blob from Google Cloud Storage
-            os.remove(audio_path)
-            blob.delete()
-
-        frame_count += 1
+            frame_count += 1
 
     video.release()
 
     # Combine text data and audio data
-    combined_data = text_data + audio_data
 
     # Remove duplicates
-    filtered_data = filter_paragraphs(combined_data, similar)
+    filtered_text = filter_paragraphs(text_data, similar)
 
-    # Delete the bucket after processing
-    bucket = storage_client.get_bucket(bucket_name)
-    bucket.delete(force=True)
-
-    return filtered_data
-
+    print("Video processed successfully")
+    return filtered_text, audio_data
 
 
 
@@ -236,24 +203,26 @@ def upload_video():
     urlform = VideoURLForm()
     uploadform = VideoUploadForm()
 
-    if uploadform.validate_on_submit() and uploadform.video_file.data:
-        video_file = uploadform.video_file.data
-        video_filename = secure_filename(video_file.filename)
-        video_path = os.path.join(app.config['UPLOAD_FOLDER'], video_filename)
-        video_file.save(video_path)
-    elif urlform.validate_on_submit():
-        youtube_url = urlform.video_url.data
-        video_filename = f"youtube_{int(time.time())}.mp4"
-        video_path = os.path.join(app.config['UPLOAD_FOLDER'], video_filename)
+    if uploadform.validate_on_submit() or urlform.validate_on_submit():
+        
+        if uploadform.validate_on_submit():
+            video_file = uploadform.video_file.data
+            video_filename = secure_filename(video_file.filename)
+            video_path = os.path.join(app.config['UPLOAD_FOLDER'], video_filename)
+            video_file.save(video_path)
+        else:
+            youtube_url = urlform.video_url.data
+            video_filename = f"youtube_{int(time.time())}.mp4"
+            video_path = os.path.join(app.config['UPLOAD_FOLDER'], video_filename)
 
-        ydl_opts = {
-            'format': 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/mp4',
-            'outtmpl': video_path,
-            'quiet': True,
-        }
+            ydl_opts = {
+                'format': 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/mp4',
+                'outtmpl': video_path,
+                'quiet': True,
+            }
 
-        with youtube_dl.YoutubeDL(ydl_opts) as ydl:
-            ydl.download([youtube_url])
+            with youtube_dl.YoutubeDL(ydl_opts) as ydl:
+                ydl.download([youtube_url])
 
         
             if video_url.startswith('http') or video_url.startswith('https'):
@@ -266,9 +235,9 @@ def upload_video():
         text_data = []
         audio_data = []
 
-        text_data, audio_data, audio_uri = process_video(video_path)
+        text_data, audio_data = process_video(video_path)
         video_url = url_for('uploaded_videos', filename=video_filename)
-        return redirect(url_for('ask_question', text_data=text_data, audio_data=audio_data, video_url=video_url, audio_uri=audio_uri))
+        return redirect(url_for('ask_question', text_data=text_data, audio_data=audio_data, video_url=video_url))
     
     return render_template('upload_video.html', uploadform=uploadform, urlform=urlform)
 
@@ -280,7 +249,6 @@ def ask_question():
     text_data = "Text Data/OCR Video Data:\n" + str(text_data)
     audio_data = request.args.get('audio_data')
     audio_data = "Audio Data/Speech Data:\n" + str(audio_data)
-    audio_uri = request.args.get('audio_uri')
     video_url = request.args.get('video_url')
     video_url = str(video_url)
     form = QueryForm()
@@ -288,7 +256,7 @@ def ask_question():
     last_answer = request.args.get('answer', '')
 
     if request.method == 'GET':
-        return render_template('ask_question.html', form=form, context=last_context, answer=last_answer, text_data=text_data, audio_data=audio_data, video_url=video_url, audio_uri=audio_uri)
+        return render_template('ask_question.html', form=form, context=last_context, answer=last_answer, text_data=text_data, audio_data=audio_data, video_url=video_url)
 
     if form.validate_on_submit():
         question = form.question.data
@@ -305,7 +273,7 @@ def ask_question():
         context = "\n".join(top_k_similar_paragraphs)
         answer = ask_gpt(question, context)
         
-        return render_template('ask_question.html', form=form, answer=answer, context=context, text_data=text_data, audio_data=audio_data, video_url=video_url, audio_uri=audio_uri)
+        return render_template('ask_question.html', form=form, answer=answer, context=context, text_data=text_data, audio_data=audio_data, video_url=video_url)
 
 
 

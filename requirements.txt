@@ -12,6 +12,7 @@ torch
 transformers
 youtube_dl
 google-auth
+pytesseract
 google-auth-oauthlib
 google-auth-httplib2
 google-api-python-client
