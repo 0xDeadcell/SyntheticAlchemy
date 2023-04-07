@@ -196,7 +196,7 @@ def upload_video():
 
     if uploadform.validate_on_submit() or urlform.validate_on_submit():
         
-        if uploadform.validate_on_submit():
+        if uploadform.validate_on_submit() and uploadform.video_file.data:
             video_file = uploadform.video_file.data
             video_filename = secure_filename(video_file.filename)
             video_path = os.path.join(app.config['UPLOAD_FOLDER'], video_filename)
