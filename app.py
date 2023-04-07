@@ -89,7 +89,7 @@ def get_youtube_transcript(video_id, language="en"):
             break
     return transcript
 
-def process_video(video_path, similar=0.8):
+def process_video(video_path, similar=0.6):
     text_data = []
     audio_data = []
 
@@ -134,7 +134,7 @@ def process_video(video_path, similar=0.8):
                 break
 
             # Extract frames every 30 frames
-            if frame_count % 30 == 0:
+            if frame_count % 60 == 0:
                 # Save the frame to a temporary file
                 frame_path = f"frame_{frame_count}.jpg"
                 cv2.imwrite(frame_path, frame)
@@ -153,10 +153,8 @@ def process_video(video_path, similar=0.8):
     video.release()
     os.remove(audio_path)
 
-    # Combine text data and audio data
-
     # Remove duplicates
-    filtered_text = filter_paragraphs(text_data, similar)
+    _, filtered_text = filter_paragraphs(text_data, similar)
 
     print("Video processed successfully")
     return filtered_text, audio_data
