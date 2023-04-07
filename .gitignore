@@ -1,5 +1,9 @@
 *.json
+__pycache__
+__pycache__/
+__pycache__/*
 google_application_credentials.json
 uploaded_videos/*
 *.env
 *.wav
+*.flac
