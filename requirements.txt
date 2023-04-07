@@ -6,3 +6,16 @@ opencv-python-headless
 openai
 pydub
 markdown
+asyncio
+google-cloud-storage
+torch
+transformers
+youtube_dl
+google-auth
+google-auth-oauthlib
+google-auth-httplib2
+google-api-python-client
+setuptools-rust
+git+https://github.com/openai/whisper.git
+validators
+soundfile

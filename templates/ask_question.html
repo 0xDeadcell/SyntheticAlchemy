@@ -2,6 +2,8 @@
 
 {% block content %}
 <h1>Uploaded Video</h1>
+<!-- Name of the video in small font, black -->
+<b><p style="font-size: 16px; color: black;">{{ ''.join(video_url.split('/')[-1].replace('.mp4', '')).replace('_', ' ') }}</p></b>
 <video id="uploaded-video" width="100%" controls>
   <source src="{{ video_url }}" type="video/mp4">
   Your browser does not support the video tag.
@@ -19,6 +21,8 @@
 <br/>
 <br/>
 <h4 style="text-align: center;">Debugging Info</h4>
+<h3>DistilBERT Refined Context:</h3>
+<pre>{{ context }}</pre>
 <h3>Text data:</h3>
 <pre>{{ text_data }}</pre>
 <h3>Audio data:</h3>

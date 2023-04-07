@@ -4,11 +4,16 @@
 
 <h1>Upload Video</h1>
 <form method="POST" enctype="multipart/form-data">
-  {{ form.csrf_token }}
-  <!-- Available Models Select Field -->
-
-  
-  {{ form.video_file }}
-  {{ form.submit }}
+  {{ uploadform.csrf_token }}
+  {{ uploadform.video_file.label }} {{ uploadform.video_file }}
+  {{ uploadform.submit }}
 </form>
+
+<h1>Or Enter YouTube Video URL</h1>
+<form method="POST">
+  {{ urlform.csrf_token }}
+  {{ urlform.video_url.label }} {{ urlform.video_url }}
+  {{ urlform.submit }}
+</form>
+
 {% endblock %}
