@@ -27,9 +27,12 @@ import pytesseract
 pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
 from concurrent.futures import ThreadPoolExecutor
 from similarity import find_top_k_similar, filter_paragraphs, calculate_similarity
+import torch
+
+device = "cuda" if torch.cuda.is_available() else "cpu"
 
 # Load OpenAI Whisper model
-model = whisper.load_model("base")
+model = whisper.load_model("base", device=device)
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = "your-secret-key"
@@ -120,6 +123,10 @@ def process_video(video_path, similar=0.8):
             print("Error extracting audio: " + str(e))
 
     with ThreadPoolExecutor() as executor:
+        audio_path = "audio.wav"
+        AudioSegment.from_file(video_path).export(audio_path, format="wav")
+        audio_data = executor.submit(process_audio, audio_path).result()
+
         while True:
             ret, frame = video.read()
 
@@ -141,27 +148,10 @@ def process_video(video_path, similar=0.8):
                 # Delete the temporary file
                 os.remove(frame_path)
 
-            # Extract audio every 5 seconds
-            if frame_count % (frame_rate * 5) == 0:
-                start_time = frame_count / frame_rate
-                end_time = start_time + 5
-
-                # Save the audio segment to a temporary file
-                audio_path = f"audio_{frame_count}.flac"
-                AudioSegment.from_file(video_path).export(audio_path, format="flac")
-
-                # Process the audio using OpenAI Whisper
-                audio_transcript = executor.submit(process_audio, audio_path).result()
-
-                if audio_transcript:
-                    audio_data.append(audio_transcript)
-
-                # Delete the temporary file
-                os.remove(audio_path)
-
             frame_count += 1
 
     video.release()
+    os.remove(audio_path)
 
     # Combine text data and audio data
 
@@ -203,6 +193,9 @@ def upload_video():
     urlform = VideoURLForm()
     uploadform = VideoUploadForm()
 
+    text_data = []
+    audio_data = []
+
     if uploadform.validate_on_submit() or urlform.validate_on_submit():
         
         if uploadform.validate_on_submit():
@@ -232,12 +225,14 @@ def upload_video():
                 # Assume that video_url is a file path
                 video_path = video_url
 
-        text_data = []
-        audio_data = []
-
+    
         text_data, audio_data = process_video(video_path)
         video_url = url_for('uploaded_videos', filename=video_filename)
-        return redirect(url_for('ask_question', text_data=text_data, audio_data=audio_data, video_url=video_url))
+        session['text_data'] = text_data
+        session['audio_data'] = audio_data
+        session['video_url'] = video_path if video_path else video_url
+
+        return redirect(url_for('ask_question'))
     
     return render_template('upload_video.html', uploadform=uploadform, urlform=urlform)
 
@@ -245,15 +240,19 @@ def upload_video():
 
 @app.route('/ask_question', methods=['GET', 'POST'])
 def ask_question():
-    text_data = request.args.get('text_data')
+    
+    text_data = session.get('text_data', '')
     text_data = "Text Data/OCR Video Data:\n" + str(text_data)
-    audio_data = request.args.get('audio_data')
+
+    audio_data = session.get('audio_data', '')
     audio_data = "Audio Data/Speech Data:\n" + str(audio_data)
-    video_url = request.args.get('video_url')
-    video_url = str(video_url)
+    
+    video_url = session.get('video_url', '')
+    answer = session.get('answer', '')
+    
     form = QueryForm()
-    last_context = request.args.get('context', '')
-    last_answer = request.args.get('answer', '')
+    last_context = session.get('context', '')
+    last_answer = session.get('answer', '')
 
     if request.method == 'GET':
         return render_template('ask_question.html', form=form, context=last_context, answer=last_answer, text_data=text_data, audio_data=audio_data, video_url=video_url)
@@ -272,8 +271,10 @@ def ask_question():
         # Join the most relevant paragraphs as the context for GPT
         context = "\n".join(top_k_similar_paragraphs)
         answer = ask_gpt(question, context)
+        session['answer'] = answer
+        session['context'] = context
         
-        return render_template('ask_question.html', form=form, answer=answer, context=context, text_data=text_data, audio_data=audio_data, video_url=video_url)
+        return render_template('ask_question.html', form=form, context=context, answer=answer, text_data=text_data, audio_data=audio_data, video_url=video_url)
 
 
 
