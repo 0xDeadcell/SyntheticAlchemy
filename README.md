@@ -10,6 +10,7 @@ SyntheticAlchemy is a web application that allows users to upload a video and as
 
 Plans:
 [x] Move from Google Cloud to self hosting for transcription services to save costs
+[x] Vectorize/Rank pieces of data prior to submittion to OpenAI to reduce token count and cost.
 [ ] YouTube URL support (in progress)
 [ ] Redis database to store queries and transcriptions (in progress)
 [ ] ElevenLabs API support
