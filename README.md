@@ -10,9 +10,10 @@ SyntheticAlchemy is a web application that allows users to upload a video and as
 
 Plans:
 - [x] Move from Google Cloud to self hosting for transcription services to save costs
-- [x] Vectorize/Rank pieces of data prior to submittion to OpenAI to reduce token count and cost.
+- [x] DistilBERT to Vectorize/Rank pieces of relevant information related to the question prior to submittion to OpenAI to reduce token count and cost.
 - [ ] YouTube URL support (in progress)
-- [ ] Redis database to store queries and transcriptions (in progress)
+- [ ] Redis database to store queries and transcriptions (in progress) to eliminate reprocessing of videos.
+- [ ] Switch out DistilBERT for OpenAIs embedding, will greatly reduce time to search through large amounts of video related data (best for long videos)
 - [ ] ElevenLabs API support
      - [ ] Play back the responses to your questions with a realistic voice!
      - [ ] For videos that are sufficiently long enough support the responses to be played back with their voice 
