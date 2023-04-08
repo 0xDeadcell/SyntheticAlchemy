@@ -1,16 +1,28 @@
 # SyntheticAlchemy - Video Q&A with AI
-Have an AI watch and listen to a video so you can ask questions to it!
+Have an AI watch and listen to a video for you so you can ask questions to it!
 
 
 <img src="./static/images/logo.png" alt="Logo" align="center" width="200" />
 
-SyntheticAlchemy is a web application that allows users to upload a video and ask questions about its content. It utilizes OpenCV, pydub, and Google Cloud APIs for video processing, and OpenAI's GPT-3 for generating answers to the user's questions. The webapp has a `process_video` function that extracts frames and audio from the uploaded video performing image recognition and text detection using the Google Cloud Vision API. It transcribes the audio using the Google Cloud Speech-to-Text API. The function processes one frame at a time and compares the text data of each frame to avoid duplicates, it stores the unique text data and audio transcripts in separate lists to avoid overuse of tokens.
+SyntheticAlchemy is a web application that allows users to upload a video and ask questions about its content. Audio is transcribed with OpenAIs Whisper, and Tesseract is used to transcribe text shown on screen in the videos. To prevent oversaturation of text from translating multiple frames per second, I just limited it to 1 frame per video second.
+
+*Note:* Currently submitting YouTube URLs are not working, but they are in the works, I just need to use a different python module or version...
+
+Plans:
+[x] Move from Google Cloud to self hosting for transcription services to save costs
+[ ] YouTube URL support (in progress)
+[ ] Redis database to store queries and transcriptions (in progress)
+[ ] ElevenLabs API support
+    [ ] Play back the responses to your questions with a realistic voice!
+    [ ] For videos that are sufficiently long enough support the responses to be played back with their voice 
+[ ] Adding/storing API keys via web interface
+[ ] Speech-To-Text, to talk to your video, and have it answer you back.
 
 ![Example Usage](example_usage.png)
 
 ## Features
 
-- Video content analysis using Google Cloud Speech-to-Text and Vision APIs
+- Video content analysis using OpenAI Whisper, and Tesseract. (GPU Recommended)
 - Natural language processing for answering questions with OpenAI's GPT-3
 - Simple web interface for video uploads and question submission
 
@@ -29,11 +41,7 @@ SyntheticAlchemy is a web application that allows users to upload a video and as
 3. Set up API keys:
 
 - Sign up for an API key from OpenAI and replace `"your-openai-api-key"` in `app.py` with your actual API key.
-- Set up a Google Cloud Platform (GCP) account and enable the Speech-to-Text API and Vision API. Download the JSON key for your service account and set the `GOOGLE_APPLICATION_CREDENTIALS` environment variable to the path of the JSON key file.
 
-4. Setup Google Cloud to provide credentials:
-- https://cloud.google.com/sdk/docs/install
-- https://cloud.google.com/docs/authentication/provide-credentials-adc#how-to
 
 ## Usage
 
