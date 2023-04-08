@@ -9,15 +9,15 @@ SyntheticAlchemy is a web application that allows users to upload a video and as
 *Note:* Currently submitting YouTube URLs are not working, but they are in the works, I just need to use a different python module or version...
 
 Plans:
-[x] Move from Google Cloud to self hosting for transcription services to save costs
-[x] Vectorize/Rank pieces of data prior to submittion to OpenAI to reduce token count and cost.
-[ ] YouTube URL support (in progress)
-[ ] Redis database to store queries and transcriptions (in progress)
-[ ] ElevenLabs API support
-    [ ] Play back the responses to your questions with a realistic voice!
-    [ ] For videos that are sufficiently long enough support the responses to be played back with their voice 
-[ ] Adding/storing API keys via web interface
-[ ] Speech-To-Text, to talk to your video, and have it answer you back.
+- [x] Move from Google Cloud to self hosting for transcription services to save costs
+- [x] Vectorize/Rank pieces of data prior to submittion to OpenAI to reduce token count and cost.
+- [ ] YouTube URL support (in progress)
+- [ ] Redis database to store queries and transcriptions (in progress)
+- [ ] ElevenLabs API support
+     - [ ] Play back the responses to your questions with a realistic voice!
+     - [ ] For videos that are sufficiently long enough support the responses to be played back with their voice 
+- [ ] Adding/storing API keys via web interface
+- [ ] Speech-To-Text, to talk to your video, and have it answer you back.
 
 ![Example Usage](example_usage.png)
 
