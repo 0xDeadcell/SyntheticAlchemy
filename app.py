@@ -32,7 +32,7 @@ model = whisper.load_model("base", device=device)
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = "your-secret-key"
-app.config['UPLOAD_FOLDER'] = './uploaded_videos'
+app.config['UPLOAD_FOLDER'] = os.path.abspath('./uploaded_videos')
 
 # Initialize OpenAI API
 if os.path.exists('.env'):
@@ -86,6 +86,8 @@ def get_youtube_transcript(video_id, language="en"):
     return transcript
 
 def process_video(video_path, similar=0.6):
+    video_path = os.path.abspath(video_path)
+    print(video_path)
     text_data = []
     audio_data = []
 
@@ -120,7 +122,7 @@ def process_video(video_path, similar=0.6):
 
     with ThreadPoolExecutor() as executor:
         audio_path = "audio.wav"
-        AudioSegment.from_file(video_path).export(audio_path, format="wav")
+        AudioSegment.from_file(os.path.abspath(video_path)).export(audio_path, format="wav")
         audio_data = executor.submit(process_audio, audio_path).result()
 
         while True:
@@ -220,7 +222,7 @@ def upload_video():
                 video_path = video_url
 
     
-        text_data, audio_data = process_video(video_path)
+        text_data, audio_data = process_video(os.path.abspath(video_path))
         video_url = url_for('uploaded_videos', filename=video_filename)
         session['text_data'] = text_data
         session['audio_data'] = audio_data

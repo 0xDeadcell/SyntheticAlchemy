@@ -6,6 +6,8 @@ Have an AI watch and listen to a video for you so you can ask questions to it!
 
 SyntheticAlchemy is a web application that allows users to upload a video and ask questions about its content. Audio is transcribed with OpenAIs Whisper, and Tesseract is used to transcribe text shown on screen in the videos. To prevent oversaturation of text from translating multiple frames per second, I just limited it to 1 frame per video second.
 
+*Note:* Make sure to install ffmpeg before running app.py
+
 *Note:* Currently submitting YouTube URLs are not working, but they are in the works, I just need to use a different python module or version...
 
 Plans:
