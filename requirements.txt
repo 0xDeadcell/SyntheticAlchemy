@@ -1,13 +1,9 @@
 Flask
 Flask-WTF
-google-cloud-speech
-google-cloud-vision
 opencv-python-headless
 openai
 pydub
 markdown
-asyncio
-google-cloud-storage
 torch
 transformers
 youtube_dl
@@ -16,7 +12,5 @@ pytesseract
 google-auth-oauthlib
 google-auth-httplib2
 google-api-python-client
-setuptools-rust
 git+https://github.com/openai/whisper.git
 validators
-soundfile

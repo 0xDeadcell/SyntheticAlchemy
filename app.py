@@ -4,13 +4,9 @@ import cv2
 import re
 import json
 import os
-import asyncio
 import youtube_dl
 import googleapiclient.discovery
 from pydub import AudioSegment
-from google.cloud import speech_v1p1beta1 as speech
-from google.cloud import storage
-from google.cloud import vision
 import markdown
 from flask import Flask, render_template, request, redirect, url_for, flash, Markup, session, send_from_directory
 from flask_wtf import FlaskForm
